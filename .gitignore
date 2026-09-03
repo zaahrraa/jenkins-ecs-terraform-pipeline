@@ -1,0 +1,34 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+
+# SSH Keys
+*.pem
+*.ppk
+*.key
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Project specific
+terraform.tfvars
+jenkins-key.pem

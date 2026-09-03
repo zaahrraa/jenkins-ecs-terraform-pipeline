@@ -1,7 +1,16 @@
+# ---------- DATA SOURCE: Latest Amazon Linux AMI ----------
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+}
 # ---------- JENKINS MASTER ----------
 resource "aws_instance" "jenkins_master" {
   ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type  # t2.micro is fine with swap!
+  instance_type          = var.instance_type # t2.micro is fine with swap!
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   key_name               = var.key_pair_name
@@ -55,7 +64,7 @@ resource "aws_instance" "jenkins_master" {
 # ---------- JENKINS AGENT ----------
 resource "aws_instance" "jenkins_agent" {
   ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type  # t2.micro is fine with swap!
+  instance_type          = var.instance_type # t2.micro is fine with swap!
   subnet_id              = aws_subnet.public[1].id
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   key_name               = var.key_pair_name
