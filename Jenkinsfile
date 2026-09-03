@@ -23,8 +23,8 @@ pipeline {
         stage('Install & Test') {
             steps {
                 dir('app') {
-                    sh 'pip install -r requirements.txt'
-                    sh 'pytest tests/ -v'
+                    sh 'pip3 install -r requirements.txt'
+                    sh 'PYTHONPATH=. python3 -m pytest tests/ -v'
                 }
             }
         }
@@ -73,10 +73,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline succeeded!'
+            echo '✅ Pipeline succeeded!'
         }
         failure {
-            echo ' Pipeline failed!'
+            echo '❌ Pipeline failed!'
         }
     }
 }
