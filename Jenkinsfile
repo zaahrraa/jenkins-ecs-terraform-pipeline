@@ -52,7 +52,7 @@ pipeline {
             steps {
                 sh """
                     aws ecs update-service \
-                        --cluster $ECS_CLUSTER \
+                        --cluster $ECS_\
                         --service $ECS_SERVICE \
                         --force-new-deployment \
                         --region $AWS_REGION
