@@ -7,10 +7,11 @@ data "aws_ami" "amazon_linux" {
     values = ["al2023-ami-*-x86_64"]
   }
 }
+
 # ---------- JENKINS MASTER ----------
 resource "aws_instance" "jenkins_master" {
   ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type # t2.micro is fine with swap!
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   key_name               = var.key_pair_name
@@ -20,8 +21,8 @@ resource "aws_instance" "jenkins_master" {
     #!/bin/bash
     dnf update -y
 
-    # 1. Install Java 21, Docker, Git
-    dnf install -y java-21-amazon-corretto docker git
+    # 1. Install Java 21, Docker, Git, and wget
+    dnf install -y java-21-amazon-corretto docker git wget
 
     # 2. Start Docker
     systemctl enable docker && systemctl start docker
@@ -34,9 +35,10 @@ resource "aws_instance" "jenkins_master" {
     swapon /swapfile
     echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
 
-    # 4. Download and install Jenkins directly (no GPG issues!)
-    wget -O /tmp/jenkins.deb https://get.jenkins.io/debian-stable/jenkins_2.568.1_all.deb
-    dpkg -i /tmp/jenkins.deb || dnf install -y net-tools
+    # 4. Install Jenkins (Amazon Linux / RHEL way!)
+    wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    dnf install -y jenkins
 
     # 5. Set JAVA_HOME for Jenkins
     echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" | tee -a /etc/default/jenkins
@@ -54,7 +56,7 @@ resource "aws_instance" "jenkins_master" {
     systemctl restart jenkins
 
     # 9. Clean up temp files to save space
-    rm -rf /tmp/jenkins*.deb
+    rm -rf /tmp/jenkins*.rpm
     dnf clean all
   EOF
 
@@ -64,7 +66,7 @@ resource "aws_instance" "jenkins_master" {
 # ---------- JENKINS AGENT ----------
 resource "aws_instance" "jenkins_agent" {
   ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type # t2.micro is fine with swap!
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.public[1].id
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   key_name               = var.key_pair_name
