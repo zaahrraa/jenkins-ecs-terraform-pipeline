@@ -23,7 +23,7 @@ pipeline {
         stage('Install & Test') {
             steps {
                 dir('app') {
-                    sh ' install -r requirements.txt'
+                    sh 'pip3 install -r requirements.txt'
                     sh 'PYTHONPATH=. python3 -m pytest tests/ -v'
                 }
             }
@@ -52,7 +52,7 @@ pipeline {
             steps {
                 sh """
                     aws ecs update-service \
-                        --cluster $ECS_\
+                        --cluster $ECS_CLUSTER\
                         --service $ECS_SERVICE \
                         --force-new-deployment \
                         --region $AWS_REGION
