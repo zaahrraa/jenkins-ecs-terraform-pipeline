@@ -8,6 +8,14 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+# ---------- LOCAL: Generate agent service file from template ----------
+locals {
+  agent_service_file = templatefile("${path.module}/templates/jenkins-agent.service.tpl", {
+    jenkins_master_ip = aws_instance.jenkins_master.private_ip
+    agent_secret      = var.agent_secret
+  })
+}
+
 # ---------- JENKINS MASTER ----------
 resource "aws_instance" "jenkins_master" {
   ami                    = data.aws_ami.amazon_linux.id
@@ -75,6 +83,9 @@ resource "aws_instance" "jenkins_agent" {
   key_name               = var.key_pair_name
   iam_instance_profile   = aws_iam_instance_profile.jenkins_profile.name
 
+  # Automatically recreate agent when user_data changes
+  user_data_replace_on_change = true
+
   user_data = <<-EOF
     #!/bin/bash
     dnf update -y
@@ -107,34 +118,12 @@ resource "aws_instance" "jenkins_agent" {
     # 7. Download agent.jar from Jenkins master
     wget -O /home/ec2-user/agent/agent.jar http://${aws_instance.jenkins_master.private_ip}:8080/jnlpJars/agent.jar
 
-    # 8. Create the agent service with the correct secret
-    cat > /etc/systemd/system/jenkins-agent.service <<SERVICE_EOF
-[Unit]
-Description=Jenkins Agent
-After=network.target
-
-[Service]
-Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/agent
-ExecStart=/usr/bin/java -jar /home/ec2-user/agent/agent.jar -url http://${aws_instance.jenkins_master.private_ip}:8080/ -secret 3a435d81c3a001da7d7735597f8f5cad576ba81877ca151dea12aa654952c6c5 -name "docker-agent" -webSocket -workDir "/home/ec2-user/agent"
-Restart=always
-RestartSec=10
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=jenkins-agent
-
-[Install]
-WantedBy=multi-user.target
-SERVICE_EOF
+    # 8. Create the agent service using base64-encoded template (no heredoc nesting!)
+    echo "${base64encode(local.agent_service_file)}" | base64 -d > /etc/systemd/system/jenkins-agent.service
 
     # 9. Start and enable the agent service
     systemctl daemon-reload
-    systemctl start jenkins-agent
-    systemctl enable jenkins-agent
-
-    # 10. Verify agent is running
-    systemctl status jenkins-agent
+    systemctl enable --now jenkins-agent
   EOF
 
   tags = { Name = "${var.project_name}-jenkins-agent" }
