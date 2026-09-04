@@ -21,41 +21,44 @@ resource "aws_instance" "jenkins_master" {
     #!/bin/bash
     dnf update -y
 
-    # 1. Install Java 21, Docker, Git, and wget
-    dnf install -y java-21-amazon-corretto docker git wget
+    # 1. Install dependencies
+    dnf install -y java-21-amazon-corretto docker git python3 python3-pip wget
 
-    # 2. Start Docker
+    # 2. Install pytest
+    pip3 install pytest
+
+    # 3. Start Docker
     systemctl enable docker && systemctl start docker
     usermod -aG docker ec2-user
 
-    # 3. Add swap space (CRITICAL for t2.micro!)
+    # 4. Add swap space
     fallocate -l 2G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
     swapon /swapfile
     echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
 
-    # 4. Install Jenkins (Amazon Linux / RHEL way!)
+    # 5. Install Jenkins
     wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
     rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
     dnf install -y jenkins
 
-    # 5. Set JAVA_HOME for Jenkins
+    # 6. Set JAVA_HOME
     echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" | tee -a /etc/default/jenkins
 
-    # 6. Set temp directory to avoid disk space issues
+    # 7. Set temp directory
     mkdir -p /var/lib/jenkins/tmp
     chown jenkins:jenkins /var/lib/jenkins/tmp
     echo 'JAVA_ARGS="-Djava.awt.headless=true -Djava.io.tmpdir=/var/lib/jenkins/tmp"' >> /etc/default/jenkins
 
-    # 7. Start Jenkins
+    # 8. Start Jenkins
     systemctl enable jenkins && systemctl start jenkins
 
-    # 8. Add Jenkins to Docker group
+    # 9. Add Jenkins to Docker group
     usermod -aG docker jenkins
     systemctl restart jenkins
 
-    # 9. Clean up temp files to save space
+    # 10. Clean up
     rm -rf /tmp/jenkins*.rpm
     dnf clean all
   EOF
@@ -76,19 +79,62 @@ resource "aws_instance" "jenkins_agent" {
     #!/bin/bash
     dnf update -y
 
-    # 1. Install Java 21, Docker, Git
-    dnf install -y java-21-amazon-corretto docker git
+    # 1. Install dependencies
+    dnf install -y java-21-amazon-corretto docker git python3 python3-pip wget
 
-    # 2. Start Docker
+    # 2. Install pytest
+    pip3 install pytest
+
+    # 3. Start Docker
     systemctl enable docker && systemctl start docker
     usermod -aG docker ec2-user
 
-    # 3. Add swap (agents also need memory!)
+    # 4. Add swap space
     fallocate -l 2G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
     swapon /swapfile
     echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+
+    # 5. Create agent directory
+    mkdir -p /home/ec2-user/agent
+    chown ec2-user:ec2-user /home/ec2-user/agent
+
+    # 6. Wait for Jenkins master to be ready
+    echo "Waiting for Jenkins master to be ready..."
+    sleep 30
+
+    # 7. Download agent.jar from Jenkins master
+    wget -O /home/ec2-user/agent/agent.jar http://${aws_instance.jenkins_master.private_ip}:8080/jnlpJars/agent.jar
+
+    # 8. Create the agent service with the correct secret
+    cat > /etc/systemd/system/jenkins-agent.service <<SERVICE_EOF
+[Unit]
+Description=Jenkins Agent
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/agent
+ExecStart=/usr/bin/java -jar /home/ec2-user/agent/agent.jar -url http://${aws_instance.jenkins_master.private_ip}:8080/ -secret 3a435d81c3a001da7d7735597f8f5cad576ba81877ca151dea12aa654952c6c5 -name "docker-agent" -webSocket -workDir "/home/ec2-user/agent"
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=jenkins-agent
+
+[Install]
+WantedBy=multi-user.target
+SERVICE_EOF
+
+    # 9. Start and enable the agent service
+    systemctl daemon-reload
+    systemctl start jenkins-agent
+    systemctl enable jenkins-agent
+
+    # 10. Verify agent is running
+    systemctl status jenkins-agent
   EOF
 
   tags = { Name = "${var.project_name}-jenkins-agent" }
