@@ -23,7 +23,9 @@ cat <<EOF > /etc/systemd/system/jenkins.service.d/environment.conf
 Environment="CASC_JENKINS_CONFIG=/var/lib/jenkins/casc_configs/jenkins.yaml"
 EOF
 
-echo 'JENKINS_JAVA_OPTIONS="-Djenkins.install.runSetupWizard=false"' >> /etc/sysconfig/jenkins
+# Pass threshold flags directly into JENKINS_JAVA_OPTIONS where the Jenkins service reads them
+echo 'JENKINS_JAVA_OPTIONS="-Djenkins.install.runSetupWizard=false -Dhudson.node_monitors.DiskSpaceMonitor.freeSpaceThreshold=100MB -Dhudson.node_monitors.DiskSpaceMonitor.freeSpaceWarningThreshold=200MB -Dhudson.node_monitors.TempSpaceMonitor.freeSpaceThreshold=100MB -Dhudson.node_monitors.TempSpaceMonitor.freeSpaceWarningThreshold=200MB"' >> /etc/sysconfig/jenkins
+
 chown -R jenkins:jenkins /var/lib/jenkins
 systemctl daemon-reload
 
