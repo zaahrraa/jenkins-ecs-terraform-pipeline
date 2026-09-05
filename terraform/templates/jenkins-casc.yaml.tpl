@@ -44,14 +44,21 @@ jobs:
       multibranchPipelineJob('my-app-pipeline') {
           description('Auto-provisioned via Terraform and JCasC')
           branchSources {
-              git {
-                  id('app-git-repo')
-                  remote('https://github.com/zaahrraa/jenkins-ecs-terraform-pipeline.git')
+              github {
+                  id('app-github-repo')
+                  repoOwner('zaahrraa')
+                  repository('jenkins-ecs-terraform-pipeline')
+                  credentialsId('')
               }
           }
           factory {
               workflowBranchProjectFactory {
                   scriptPath('Jenkinsfile')
+              }
+          }
+          triggers {
+              periodicFolderTrigger {
+                  interval('5m')
               }
           }
       }
