@@ -10,3 +10,4 @@ git
 github
 blueocean
 workflow-aggregator
+job-dsl

@@ -38,3 +38,20 @@ credentials:
                 directEntry:
                   privateKey: |
                     ${indent(24, chomp(agent_ssh_private_key))}
+
+jobs:
+  - script: >
+      multibranchPipelineJob('my-app-pipeline') {
+          description('Auto-provisioned via Terraform and JCasC')
+          branchSources {
+              git {
+                  id('app-git-repo')
+                  remote('https://github.com/zaahrraa/jenkins-ecs-terraform-pipeline.git')
+              }
+          }
+          factory {
+              workflowBranchProjectFactory {
+                  scriptPath('Jenkinsfile')
+              }
+          }
+      }
