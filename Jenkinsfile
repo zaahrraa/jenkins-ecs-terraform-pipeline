@@ -4,12 +4,12 @@ pipeline {
     }
 
     environment {
-        AWS_REGION     = 'us-east-1'
-        ACCOUNT_ID     = '905418155092'
-        ECR_REPO       = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/jenkins-ecs-pipeline-app"
-        IMAGE_TAG      = "${env.BUILD_NUMBER}"
-        ECS_CLUSTER    = 'jenkins-ecs-pipeline-cluster'
-        ECS_SERVICE    = 'jenkins-ecs-pipeline-service'
+        AWS_REGION      = 'us-east-1'
+        ACCOUNT_ID      = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+        ECR_REPO        = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/jenkins-ecs-pipeline-app"
+        IMAGE_TAG       = "${env.BUILD_NUMBER}"
+        ECS_CLUSTER     = 'jenkins-ecs-pipeline-cluster'
+        ECS_SERVICE     = 'jenkins-ecs-pipeline-service'
         ECS_TASK_FAMILY = 'jenkins-ecs-pipeline-task'
     }
 
