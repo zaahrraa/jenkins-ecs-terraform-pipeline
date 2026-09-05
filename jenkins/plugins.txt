@@ -8,6 +8,5 @@ docker-workflow
 pipeline-aws
 git
 github
-cloudwatch-aws
 blueocean
 workflow-aggregator

@@ -33,7 +33,8 @@ credentials:
               scope: GLOBAL
               id: "agent-ssh-key"
               username: "ec2-user"
+              description: "SSH key for docker-agent"
               privateKeySource:
-                directEntrySource:
+                directEntry:
                   privateKey: |
-                    ${indent(20, agent_ssh_private_key)}
+                    ${indent(24, chomp(agent_ssh_private_key))}

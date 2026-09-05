@@ -10,14 +10,14 @@ data "aws_ami" "amazon_linux" {
 
 # ---------- LOCALS: Render templates ----------
 locals {
-  agent_ssh_private_key = file("${path.module}/../${var.key_pair_name}.pem")  # ← CHANGED!
+  agent_ssh_private_key = file("${path.module}/../${var.key_pair_name}.pem")
   jenkins_plugins_txt   = file("${path.module}/../jenkins/plugins.txt")
 
   # JCasC YAML configuration
   jenkins_casc_yaml = templatefile("${path.module}/templates/jenkins-casc.yaml.tpl", {
-    admin_user            = var.jenkins_admin_user
-    admin_password        = var.jenkins_admin_password
-    agent_private_ip      = aws_instance.jenkins_agent.private_ip
+    admin_user              = var.jenkins_admin_user
+    admin_password          = var.jenkins_admin_password
+    agent_private_ip        = aws_instance.jenkins_agent.private_ip
     agent_ssh_private_key = local.agent_ssh_private_key
   })
 
@@ -25,6 +25,7 @@ locals {
   master_user_data = templatefile("${path.module}/templates/jenkins-master-user-data.sh.tpl", {
     jenkins_casc_yaml   = base64encode(local.jenkins_casc_yaml)
     jenkins_plugins_txt = base64encode(local.jenkins_plugins_txt)
+    agent_private_ip    = aws_instance.jenkins_agent.private_ip
   })
 
   # Agent user data
