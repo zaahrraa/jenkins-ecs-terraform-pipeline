@@ -5,7 +5,7 @@ pipeline {
 
     environment {
         AWS_REGION     = 'us-east-1'
-        ACCOUNT_ID     = '097346687563'
+        ACCOUNT_ID     = '905418155092'
         ECR_REPO       = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/jenkins-ecs-pipeline-app"
         IMAGE_TAG      = "${env.BUILD_NUMBER}"
         ECS_CLUSTER    = 'jenkins-ecs-pipeline-cluster'
