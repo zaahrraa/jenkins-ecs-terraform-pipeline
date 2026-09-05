@@ -20,8 +20,14 @@ variable "key_pair_name" {
 variable "my_ip" {
   description = "Your public IP address for SSH access (format: x.x.x.x/32)"
 }
-variable "agent_secret" {
-  description = "Jenkins agent secret token (generated when node is created in Jenkins)"
-  type        = string
-  default     = "PLACEHOLDER"
+
+variable "jenkins_admin_user" {
+  description = "Jenkins admin username"
+  default     = "admin"
+}
+
+variable "jenkins_admin_password" {
+  description = "Jenkins admin password"
+  sensitive   = true
+  default     = "admin123"  # Change this!
 }

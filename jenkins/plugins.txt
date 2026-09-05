@@ -1,0 +1,13 @@
+configuration-as-code
+ssh-slaves
+ssh-credentials
+credentials
+credentials-binding
+amazon-ecr
+docker-workflow
+pipeline-aws
+git
+github
+cloudwatch-aws
+blueocean
+workflow-aggregator

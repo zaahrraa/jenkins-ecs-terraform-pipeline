@@ -28,6 +28,16 @@ resource "aws_security_group" "jenkins_sg" {
   }
 }
 
+# ---------- ALLOW MASTER → AGENT SSH ----------
+resource "aws_security_group_rule" "jenkins_to_jenkins_ssh" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.jenkins_sg.id
+  source_security_group_id = aws_security_group.jenkins_sg.id
+}
+
 # ---------- LOAD BALANCER SECURITY GROUP ----------
 resource "aws_security_group" "alb_sg" {
   name        = "${var.project_name}-alb-sg"
