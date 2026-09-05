@@ -29,7 +29,7 @@ echo 'JENKINS_JAVA_OPTIONS="-Djenkins.install.runSetupWizard=false -Dhudson.node
 chown -R jenkins:jenkins /var/lib/jenkins
 systemctl daemon-reload
 
-# 3. Install plugins using the plugin manager tool AFTER package installation
+# 3. Install pinned plugins strictly using the plugin manager tool
 echo "Resolving latest plugin-installation-manager-tool release..."
 PLUGIN_MANAGER_URL=$(curl -s https://api.github.com/repos/jenkinsci/plugin-installation-manager-tool/releases/latest | grep -oP '"browser_download_url":\s*"\K[^"]+\.jar' | head -n1 | tr -d '\r')
 
@@ -38,7 +38,10 @@ if [ -n "$PLUGIN_MANAGER_URL" ]; then
   curl -fL -o /opt/plugin-manager.jar "$PLUGIN_MANAGER_URL"
   JENKINS_WAR=$(rpm -ql jenkins | grep jenkins.war)
   mkdir -p /var/lib/jenkins/plugins
-  java -jar /opt/plugin-manager.jar --war "$JENKINS_WAR" --plugin-file /var/lib/jenkins/plugins.txt --plugin-download-directory /var/lib/jenkins/plugins || echo "WARNING: plugin install failed, continuing anyway" >&2
+  
+  # Removed the fallback '|| echo' suppression so version mismatches cause explicit deployment errors if they occur
+  java -jar /opt/plugin-manager.jar --war "$JENKINS_WAR" --plugin-file /var/lib/jenkins/plugins.txt --plugin-download-directory /var/lib/jenkins/plugins
+  
   chown -R jenkins:jenkins /var/lib/jenkins
 fi
 

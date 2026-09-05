@@ -15,10 +15,11 @@ locals {
 
   # JCasC YAML configuration
   jenkins_casc_yaml = templatefile("${path.module}/templates/jenkins-casc.yaml.tpl", {
-    admin_user              = var.jenkins_admin_user
-    admin_password          = var.jenkins_admin_password
-    agent_private_ip        = aws_instance.jenkins_agent.private_ip
-    agent_ssh_private_key = local.agent_ssh_private_key
+    admin_user             = var.jenkins_admin_user
+    admin_password         = var.jenkins_admin_password
+    agent_private_ip       = aws_instance.jenkins_agent.private_ip
+    agent_ssh_private_key  = local.agent_ssh_private_key
+    github_token           = var.github_token
   })
 
   # Master user data

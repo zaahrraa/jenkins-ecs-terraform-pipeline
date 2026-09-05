@@ -1,6 +1,7 @@
 configuration-as-code
 ssh-slaves
 ssh-credentials
+plain-credentials
 credentials
 credentials-binding
 amazon-ecr
@@ -8,6 +9,11 @@ docker-workflow
 pipeline-aws
 git
 github
+github-branch-source
+branch-api
+cloudbees-folder
+workflow-multibranch
 blueocean
 workflow-aggregator
 job-dsl
+trilead-api

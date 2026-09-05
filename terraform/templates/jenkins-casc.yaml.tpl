@@ -38,6 +38,17 @@ credentials:
                 directEntry:
                   privateKey: |
                     ${indent(24, chomp(agent_ssh_private_key))}
+          - string:
+              scope: GLOBAL
+              id: "github-token-id"
+              secret: "${github_token}"
+              description: "GitHub PAT for API requests and branch indexing"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-token-userpass"
+              username: "zaahrraa"
+              password: "${github_token}"
+              description: "GitHub PAT (username+password form) for branch source scanning"
 
 jobs:
   - script: >
@@ -45,10 +56,10 @@ jobs:
           description('Auto-provisioned via Terraform and JCasC')
           branchSources {
               github {
-                  id('app-github-repo')
+                  id('jenkins-ecs-pipeline-repo')
+                  scanCredentialsId('github-token-userpass')
                   repoOwner('zaahrraa')
                   repository('jenkins-ecs-terraform-pipeline')
-                  credentialsId('')
               }
           }
           factory {
@@ -61,4 +72,17 @@ jobs:
                   interval('5m')
               }
           }
+          orphanedItemStrategy {
+              discardOldItems {
+                  numToKeep(5)
+              }
+          }
       }
+
+unclassified:
+  gitHubPluginConfig:
+    configs:
+      - name: "GitHub"
+        apiUrl: "https://api.github.com"
+        credentialsId: "github-token-id"
+        manageHooks: false

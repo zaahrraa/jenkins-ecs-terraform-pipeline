@@ -32,3 +32,4 @@ Thumbs.db
 # Project specific
 terraform.tfvars
 jenkins-key.pem
+terraform/terraform.tfvars

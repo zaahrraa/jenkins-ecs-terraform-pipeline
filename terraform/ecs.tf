@@ -21,7 +21,7 @@ resource "aws_ecs_task_definition" "app" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-group"         = "/ecs/${var.project_name}"
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "app"
         }

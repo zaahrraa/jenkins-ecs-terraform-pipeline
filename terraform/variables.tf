@@ -31,3 +31,8 @@ variable "jenkins_admin_password" {
   sensitive   = true
   default     = "admin123"  # Change this!
 }
+variable "github_token" {
+  description = "GitHub Personal Access Token for Jenkins"
+  type        = string
+  sensitive   = true
+}
