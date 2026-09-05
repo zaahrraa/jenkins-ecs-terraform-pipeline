@@ -2,7 +2,7 @@
 set -e
 
 dnf update -y
-dnf install -y java-21-amazon-corretto docker git
+dnf install -y java-21-amazon-corretto docker git python3 python3-pip
 systemctl enable docker && systemctl start docker
 usermod -aG docker ec2-user
 
