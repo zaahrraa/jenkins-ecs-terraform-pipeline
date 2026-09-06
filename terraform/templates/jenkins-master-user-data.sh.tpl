@@ -2,6 +2,14 @@
 set -e
 
 dnf update -y
+
+# --- Add swap space (t2.micro only has 1GB RAM, this prevents OOM issues) ---
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
 dnf install -y java-21-amazon-corretto docker git wget unzip nc
 alternatives --set java /usr/lib/jvm/java-21-amazon-corretto.x86_64/bin/java
 systemctl enable docker && systemctl start docker
@@ -38,10 +46,10 @@ if [ -n "$PLUGIN_MANAGER_URL" ]; then
   curl -fL -o /opt/plugin-manager.jar "$PLUGIN_MANAGER_URL"
   JENKINS_WAR=$(rpm -ql jenkins | grep jenkins.war)
   mkdir -p /var/lib/jenkins/plugins
-  
+
   # Removed the fallback '|| echo' suppression so version mismatches cause explicit deployment errors if they occur
   java -jar /opt/plugin-manager.jar --war "$JENKINS_WAR" --plugin-file /var/lib/jenkins/plugins.txt --plugin-download-directory /var/lib/jenkins/plugins
-  
+
   chown -R jenkins:jenkins /var/lib/jenkins
 fi
 

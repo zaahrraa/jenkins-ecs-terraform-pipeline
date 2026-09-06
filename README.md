@@ -191,6 +191,7 @@ sudo cat /var/lib/jenkins/casc_configs/jenkins.yaml
 terraform validate
 terraform plan
 terraform apply -replace="aws_instance.jenkins_master"
+terraform apply -replace="aws_instance.jenkins_master" -replace="aws_instance.jenkins_agent"   # rebuild both, e.g. after changing root_block_device or swap setup
 terraform import <resource_address> <real_aws_id>
 terraform force-unlock <LOCK_ID>
 

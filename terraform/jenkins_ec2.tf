@@ -15,11 +15,11 @@ locals {
 
   # JCasC YAML configuration
   jenkins_casc_yaml = templatefile("${path.module}/templates/jenkins-casc.yaml.tpl", {
-    admin_user             = var.jenkins_admin_user
-    admin_password         = var.jenkins_admin_password
-    agent_private_ip       = aws_instance.jenkins_agent.private_ip
-    agent_ssh_private_key  = local.agent_ssh_private_key
-    github_token           = var.github_token
+    admin_user            = var.jenkins_admin_user
+    admin_password        = var.jenkins_admin_password
+    agent_private_ip      = aws_instance.jenkins_agent.private_ip
+    agent_ssh_private_key = local.agent_ssh_private_key
+    github_token          = var.github_token
   })
 
   # Master user data
@@ -35,30 +35,38 @@ locals {
 
 # ---------- JENKINS MASTER ----------
 resource "aws_instance" "jenkins_master" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public[0].id
-  vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
-  key_name               = var.key_pair_name
-  iam_instance_profile   = aws_iam_instance_profile.jenkins_profile.name
+  ami                          = data.aws_ami.amazon_linux.id
+  instance_type                = var.instance_type
+  subnet_id                    = aws_subnet.public[0].id
+  vpc_security_group_ids       = [aws_security_group.jenkins_sg.id]
+  key_name                     = var.key_pair_name
+  iam_instance_profile         = aws_iam_instance_profile.jenkins_profile.name
+  user_data_replace_on_change  = true
+  user_data                    = local.master_user_data
 
-  user_data_replace_on_change = true
-  user_data                   = local.master_user_data
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
 
   tags = { Name = "${var.project_name}-jenkins-master" }
 }
 
 # ---------- JENKINS AGENT ----------
 resource "aws_instance" "jenkins_agent" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public[1].id
-  vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
-  key_name               = var.key_pair_name
-  iam_instance_profile   = aws_iam_instance_profile.jenkins_profile.name
+  ami                          = data.aws_ami.amazon_linux.id
+  instance_type                = var.instance_type
+  subnet_id                    = aws_subnet.public[1].id
+  vpc_security_group_ids       = [aws_security_group.jenkins_sg.id]
+  key_name                     = var.key_pair_name
+  iam_instance_profile         = aws_iam_instance_profile.jenkins_profile.name
+  user_data_replace_on_change  = true
+  user_data                    = local.agent_user_data
 
-  user_data_replace_on_change = true
-  user_data                   = local.agent_user_data
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
 
   tags = { Name = "${var.project_name}-jenkins-agent" }
 }
