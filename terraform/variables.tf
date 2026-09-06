@@ -28,8 +28,7 @@ variable "jenkins_admin_user" {
 
 variable "jenkins_admin_password" {
   description = "Jenkins admin password"
-  sensitive   = true
-  default     = "admin123"  # Change this!
+  sensitive   = true 
 }
 variable "github_token" {
   description = "GitHub Personal Access Token for Jenkins"
